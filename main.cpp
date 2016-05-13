@@ -47,21 +47,31 @@ int main(int argc,char *argv[])
 
 	FILE *fp;
 	fp=fopen(argv[1],"r");
+	
 	if (fp==NULL)
 	{
 		cout<<"Error:文件读取失败。\n";
 		getchar();
 		exit(0);
 	}
-	char c;
 	int originsize=0;
+	fseek(fp,0,SEEK_END);
+	originsize=ftell(fp);
+	rewind(fp);
+
 	int newsize=0;
 	char buf[1024];
 	int buflen=0;
-	char point[102400]="\0";//100KB
-	char vector[102400]="\0";
-	char coordIndex[102400]="\0";
-	char normalIndex[102400]="\0";
+
+	//为4个段分配原文件大小的内存空间
+	char *point=(char *)malloc(originsize);
+	(*point)='\0';
+	char *vector=(char *)malloc(originsize);
+	(*vector)='\0';
+	char *coordIndex=(char *)malloc(originsize);
+	(*coordIndex)='\0';
+	char *normalIndex=(char *)malloc(originsize);
+	(*normalIndex)='\0';
 	int pointlen=0;
 	int vectorlen=0;
 	int coordIndexlen=0;
@@ -70,12 +80,17 @@ int main(int argc,char *argv[])
 	bool vectorshow=false;
 	bool coordIndexshow=false;
 	bool normalIndexshow=false;
+	
+	char c;
 	while ((c=getc(fp))!=EOF)
 	{
 		//cout<<c;
 		switch (c)
 		{
 		case '\n':
+			//算法：如果处于point区，则判断是否到point区末尾，到末尾则标记point区结束
+			//      未到末尾则复制缓冲区buf至point。如未处于point区则判断该行是否为point区开始行。
+
 			///point
 			if (pointshow)
 			{
@@ -173,7 +188,7 @@ int main(int argc,char *argv[])
 			break;
 		}
 	}
-	originsize=ftell(fp);
+	//originsize=ftell(fp);
 	fclose(fp);
 
 	fp=fopen(argv[1],"w");
